@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+            http://www.springframework.org/schema/context 
+            http://www.springframework.org/schema/context/spring-context-4.0.xsd
+            http://www.springframework.org/schema/aop 
+            http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+            http://www.springframework.org/schema/tx 
+            http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+            http://www.springframework.org/schema/mvc 
+            http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+            http://www.springframework.org/schema/context 
+            http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+    
+    <!-- 配置数据源dataSource，连接MySQL数据库 、数据库：learn_system -->    
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">  
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"></property>  
+        <property name="url" value="jdbc:mysql://localhost:3306/wealth"></property>  
+        <property name="username" value="root"></property>  
+        <property name="password" value=""></property>  
+    </bean>
+     
+    <!-- 创建SqlSessionFactory -->
+   	<bean id="ssf" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- 指定数据源 -->
+		<property name="dataSource" ref="dataSource">
+		</property>
+		<!-- 指定mybatis配置文件 -->
+		<property name="configLocation" value="classpath:mybatis/mybatis-conf.xml">
+		</property>
+	</bean>
+    
+    <!-- 配置事物 -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+     	<property name="dataSource" ref="dataSource" />
+    </bean>
+    
+    <!-- 配置事物的传播特性 -->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">  
+	    <tx:attributes>  
+	        <tx:method name="find*" read-only="true"/>  
+	        <tx:method name="get*" read-only="true"/>  
+	        <tx:method name="query*" read-only="true"/>  
+	        <tx:method name="insert" propagation="REQUIRED" read-only="false"/>  
+	        <tx:method name="add" propagation="REQUIRED" read-only="false"/>  
+	        <tx:method name="update*" propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception"/>  
+	        <tx:method name="del*" propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception"/>  
+	    </tx:attributes>  
+	</tx:advice>  
+    
+    <!-- 配置aop -->
+    <aop:config>  
+	    <aop:pointcut id="pointcut" expression="execution (* com.groot.service..*.*(..))"/>  
+	    <aop:advisor advice-ref="txAdvice" pointcut-ref="pointcut"/>  
+	</aop:config>
+    
+    <!-- 映射接口 -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+    	<property name="basePackage" value="com.groot.mapper"></property>
+    	
+    </bean>
+    
+    
+    
+</beans>
